@@ -31,6 +31,6 @@ GEMINI_API_KEY=your_key
 SERP_API_KEY=your_key
 3. Start server
 node backend/server.js
-python app.py
+python ml-service/app.py
 Server runs at:
 http://localhost:5000/external-search
