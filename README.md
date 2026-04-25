@@ -34,3 +34,6 @@ node backend/server.js
 python ml-service/app.py
 Server runs at:
 http://localhost:5000/external-search
+
+
+CORS configuration in server.js running on 5000 port and CORS is configured for all region.
