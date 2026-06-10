@@ -18,6 +18,11 @@ app.use('/search', searchRoute);
 app.use('/external-search', externalRoute);
 app.use('/analyze', analyzeRoute); // 🔥 NEW
 
+// ✅ Static Folders for Image Previews
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/dataset', express.static(path.join(__dirname, 'dataset')));
+
 // ✅ Health check
 app.get('/', (req, res) => {
     res.send("🚀 Server is running");

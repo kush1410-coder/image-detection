@@ -35,11 +35,17 @@ router.post('/', upload.single('image'), async (req, res) => {
 
         results.sort((a, b) => b.similarity - a.similarity);
 
-        res.json({ matches: results });
+        // Add prefix path to access images via static server
+        const enrichedMatches = results.map(item => ({
+            ...item,
+            imageUrl: `http://localhost:5000/dataset/${item.image}`
+        }));
+
+        res.json({ matches: enrichedMatches });
 
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error searching images");
+        res.status(500).json({ error: "Error searching images" });
     }
 });
 

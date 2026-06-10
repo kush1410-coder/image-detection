@@ -3,7 +3,6 @@ const fs = require("fs");
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// helper: convert image → base64
 const imageToBase64 = (filePath) => {
     const image = fs.readFileSync(filePath);
     return image.toString("base64");
@@ -11,7 +10,6 @@ const imageToBase64 = (filePath) => {
 
 const analyzeImage = async (imagePath) => {
     try {
-        // ✅ CHECK API KEY
         if (!GEMINI_API_KEY) {
             console.log("❌ Gemini API key missing");
             throw new Error("Missing Gemini API key");
@@ -21,36 +19,18 @@ const analyzeImage = async (imagePath) => {
 
         const base64Image = imageToBase64(imagePath);
 
-        // 🔥 NEW SMART PROMPT
         const prompt = `
-Analyze this image and do the following:
-
-1. Identify the main subject (player, team, or event)
-2. Generate 5 short search queries
-
-Return ONLY JSON in this format:
+Analyze this image and return ONLY JSON.
 
 {
-  "entity": "name of player or subject",
-  "queries": ["query1", "query2", "query3", "query4", "query5"]
+  "entity": "main subject name",
+  "queries": ["q1","q2","q3","q4","q5"]
 }
 
 Rules:
+- No markdown
 - No explanation
-- Queries must be short (max 5 words)
-- Focus on sports/media content
-
-Example:
-{
-  "entity": "lionel messi",
-  "queries": [
-    "lionel messi hd",
-    "messi argentina celebration",
-    "football player close up",
-    "soccer match action",
-    "stadium player"
-  ]
-}
+- Only valid JSON
 `;
 
         const response = await axios.post(
@@ -72,18 +52,23 @@ Example:
             }
         );
 
-        // ✅ extract response
-        const text =
+        let text =
             response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
         console.log("🧠 Gemini raw response:", text);
 
-        // ✅ parse safely
+        // 🔥 CLEAN MARKDOWN
+        text = text
+            .replace(/```json/g, '')
+            .replace(/```/g, '')
+            .trim();
+
         let parsed;
+
         try {
             parsed = JSON.parse(text);
         } catch (err) {
-            console.log("⚠️ Failed to parse Gemini output, using fallback");
+            console.log("⚠️ JSON parse failed, fallback used");
 
             return {
                 entity: "unknown",
@@ -91,22 +76,14 @@ Example:
                     "football player",
                     "sports image",
                     "match highlight",
-                    "stadium action",
-                    "player close up"
+                    "stadium action"
                 ]
             };
         }
 
-        // ✅ safety checks
         return {
             entity: parsed.entity || "unknown",
-            queries: parsed.queries || [
-                "football player",
-                "sports image",
-                "match highlight",
-                "stadium action",
-                "player close up"
-            ]
+            queries: parsed.queries || []
         };
 
     } catch (err) {
@@ -118,8 +95,7 @@ Example:
                 "football player",
                 "sports image",
                 "match highlight",
-                "stadium action",
-                "player close up"
+                "stadium action"
             ]
         };
     }
