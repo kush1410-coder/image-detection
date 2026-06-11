@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://YOUR_BACKEND_URL/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
